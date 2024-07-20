@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# 找到项目的根目录
+export PROJECT_PATH=$(realpath $(dirname ${BASH_SOURCE[0]})/..)
+export PROJECT_NAME=$(basename $PROJECT_PATH)
+echo "Setting up project at $PROJECT_PATH"
+
+# 将 build 和 script 目录添加到 PATH 环境变量中
+export PATH=$PROJECT_PATH/script:$PROJECT_PATH/build:$PATH
+
+# 设置编译类型为 Debug
+function debug() {
+    export BUILD_Type=Debug
+    echo "Build type set to Debug"
+}
+
+# 设置编译类型为 Release
+function release() {
+    export BUILD_Type=Release
+    echo "Build type set to Release"
+}
+
+debug
+export PROMPT_COMMAND='echo -ne "\033[1m$PROJECT_NAME\033[0m: \033[32m$BUILD_Type\033[0m\n";'$PROMPT_COMMAND
