@@ -20,3 +20,11 @@ include_directories(include)
 
 # 添加可执行程序目标
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+
+# 添加测试目标
+enable_testing()
+file(GLOB_RECURSE TEST_FILES test/*.cpp)
+add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${SOURCE_FILES})
+target_compile_definitions(${PROJECT_NAME}_test PRIVATE UNIT_TEST)
+target_link_libraries(${PROJECT_NAME}_test GTest::GTest GTest::Main)
+add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)

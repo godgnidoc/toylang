@@ -1,12 +1,5 @@
-#include "toylang/regex.h"
+#ifndef UNIT_TEST
 
-int main(int argc, char** argv) {
-  (void)argc;
-  (void)argv;
+int main(int, char **) { return 0; }
 
-  using namespace toylang;
-
-  auto regex = regex::Compile("a(b+|c)*d");
-
-  return 0;
-}
+#endif
