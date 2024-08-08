@@ -8,6 +8,9 @@ echo "Setting up project at $PROJECT_PATH"
 # 将 build 和 script 目录添加到 PATH 环境变量中
 export PATH=$PROJECT_PATH/script:$PROJECT_PATH/build:$PATH
 
+# 使用 vcpkg 托管第三方库
+export CMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake
+
 # 设置编译类型为 Debug
 function debug() {
     export BUILD_Type=Debug

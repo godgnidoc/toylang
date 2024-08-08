@@ -7,6 +7,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-pthread -fPIC -Wall -Wextra -Werror=delete-non-virtual-dtor -Werror=return-type")
 set(CMAKE_BUILD_TYPE $ENV{BUILD_TYPE})
 
+find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(GTest REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
 # 搜索全部源代码
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 

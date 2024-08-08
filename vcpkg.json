@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "fmt",
+    "nlohmann-json",
+    "spdlog",
+    "gtest"
+  ]
+}
