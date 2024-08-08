@@ -5,4 +5,5 @@ if [ -z "$PROJECT_PATH" ]; then
     exit 1
 fi
 
-env -C $PROJECT_PATH/build make -j$(nproc)
+mkdir -p $PROJECT_PATH/build
+env -C $PROJECT_PATH/build cmake ${PROJECT_PATH}
