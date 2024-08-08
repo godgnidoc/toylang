@@ -15,9 +15,16 @@ using Regex = std::shared_ptr<regex::Node>;
 
 namespace regex {
 
+struct LeafNode;
+using LeafNodes = std::set<std::shared_ptr<LeafNode>,
+                           std::owner_less<std::shared_ptr<LeafNode>>>;
+
 /** 正则表达式节点 */
 struct Node {
   enum Type {
+    /** 接受 */
+    kAccept,
+
     /** 字符 */
     kChar,
 
@@ -42,15 +49,47 @@ struct Node {
 
   virtual ~Node() = default;
   virtual Type type() const = 0;
+
+  virtual bool GetNullable() = 0;
+  virtual LeafNodes GetFirstpos() = 0;
+  virtual LeafNodes GetLastpos() = 0;
+  virtual void CalcFollowpos() = 0;
+};
+
+struct LeafNode : public Node, std::enable_shared_from_this<LeafNode> {
+  /**
+   * 后继位置集合
+   */
+  LeafNodes followpos_;
+
+  void CalcFollowpos() final;
+  virtual bool Match(char input) = 0;
+};
+
+struct AcceptNode : public LeafNode {
+  int token_id_;
+
+  Type type() const override { return kAccept; }
+
+  AcceptNode(int token_id) : token_id_{token_id} {}
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  bool Match(char input) override;
 };
 
 /**
  * 单个字符节点
  */
-struct CharNode : public Node {
+struct CharNode : public LeafNode {
   char ch_;
 
   Type type() const override { return kChar; }
+
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  bool Match(char input) override;
 };
 
 /**
@@ -71,13 +110,18 @@ struct CharNode : public Node {
  * \w 单词字符 == [a-zA-Z0-9_]
  * \W 非单词字符 == [^a-zA-Z0-9_]
  */
-struct RangeNode : public Node {
+struct RangeNode : public LeafNode {
   enum Direction { kNegative, kPositive };
 
   Direction dir_;
   std::set<char> set_;
 
   Type type() const override { return kRange; }
+
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  bool Match(char input) override;
 };
 
 struct ConcatNode : public Node {
@@ -85,6 +129,11 @@ struct ConcatNode : public Node {
   Regex right_;
 
   Type type() const override { return kConcat; }
+
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  void CalcFollowpos() override;
 };
 
 struct UnionNode : public Node {
@@ -92,24 +141,44 @@ struct UnionNode : public Node {
   Regex right_;
 
   Type type() const override { return kUnion; }
+
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  void CalcFollowpos() override;
 };
 
 struct KleeneNode : public Node {
   Regex child_;
 
   Type type() const override { return kKleene; }
+
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  void CalcFollowpos() override;
 };
 
 struct PositiveNode : public Node {
   Regex child_;
 
   Type type() const override { return kPositive; }
+
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  void CalcFollowpos() override;
 };
 
 struct OptionalNode : public Node {
   Regex child_;
 
   Type type() const override { return kOptional; }
+
+  bool GetNullable() override;
+  LeafNodes GetFirstpos() override;
+  LeafNodes GetLastpos() override;
+  void CalcFollowpos() override;
 };
 
 /**
@@ -118,6 +187,21 @@ struct OptionalNode : public Node {
  * @param expr 正则表达式
  */
 Regex Compile(std::string const& expr);
+
+/**
+ * 将两个正则表达式使用或运算连接
+ *
+ * @param lhs 左正则表达式
+ * @param rhs 右正则表达式
+ */
+Regex Union(Regex const& lhs, Regex const& rhs);
+
+/**
+ * 为正则表达式标记接受节点
+ * @param regex 正则表达式
+ * @param token_id 接受的token id
+ */
+std::shared_ptr<regex::AcceptNode> Accept(Regex const& regex, int token_id);
 
 }  // namespace regex
 }  // namespace toylang

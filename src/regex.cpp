@@ -66,6 +66,103 @@ std::set<char> operator_table = {'*', '+', '?', '|', '(', ')'};
 
 }  // namespace
 
+void LeafNode::CalcFollowpos() { /* do nothing */ }
+
+bool AcceptNode::GetNullable() {
+  throw std::logic_error("AcceptNode::GetNullable()");
+}
+LeafNodes AcceptNode::GetFirstpos() {
+  throw std::logic_error("AcceptNode::GetFirstpos()");
+}
+LeafNodes AcceptNode::GetLastpos() {
+  throw std::logic_error("AcceptNode::GetLastpos()");
+}
+bool AcceptNode::Match(char input) {
+  (void)input;
+  return false;
+}
+
+bool CharNode::GetNullable() { return false; }
+LeafNodes CharNode::GetFirstpos() { return {shared_from_this()}; }
+LeafNodes CharNode::GetLastpos() { return {shared_from_this()}; }
+bool CharNode::Match(char ch) { return ch_ == ch; }
+
+bool RangeNode::GetNullable() { return false; }
+LeafNodes RangeNode::GetFirstpos() { return {shared_from_this()}; }
+LeafNodes RangeNode::GetLastpos() { return {shared_from_this()}; }
+bool RangeNode::Match(char ch) {
+  if (dir_ == kNegative)
+    return !set_.count(ch);
+  else
+    return set_.count(ch);
+}
+bool ConcatNode::GetNullable() {
+  return left_->GetNullable() && right_->GetNullable();
+}
+LeafNodes ConcatNode::GetFirstpos() {
+  auto set = left_->GetFirstpos();
+  if (left_->GetNullable()) set.merge(right_->GetFirstpos());
+  return set;
+}
+LeafNodes ConcatNode::GetLastpos() {
+  auto set = right_->GetLastpos();
+  if (right_->GetNullable()) set.merge(left_->GetLastpos());
+  return set;
+}
+void ConcatNode::CalcFollowpos() {
+  left_->CalcFollowpos();
+  right_->CalcFollowpos();
+
+  for (auto& node : left_->GetLastpos()) {
+    node->followpos_.merge(right_->GetFirstpos());
+  }
+}
+
+bool UnionNode::GetNullable() {
+  return left_->GetNullable() || right_->GetNullable();
+}
+LeafNodes UnionNode::GetFirstpos() {
+  auto set = left_->GetFirstpos();
+  set.merge(right_->GetFirstpos());
+  return set;
+}
+LeafNodes UnionNode::GetLastpos() {
+  auto set = left_->GetLastpos();
+  set.merge(right_->GetLastpos());
+  return set;
+}
+void UnionNode::CalcFollowpos() {
+  left_->CalcFollowpos();
+  right_->CalcFollowpos();
+}
+
+bool KleeneNode::GetNullable() { return true; }
+LeafNodes KleeneNode::GetFirstpos() { return child_->GetFirstpos(); }
+LeafNodes KleeneNode::GetLastpos() { return child_->GetLastpos(); }
+void KleeneNode::CalcFollowpos() {
+  child_->CalcFollowpos();
+
+  for (auto& node : child_->GetLastpos()) {
+    node->followpos_.merge(child_->GetFirstpos());
+  }
+}
+
+bool PositiveNode::GetNullable() { return child_->GetNullable(); }
+LeafNodes PositiveNode::GetFirstpos() { return child_->GetFirstpos(); }
+LeafNodes PositiveNode::GetLastpos() { return child_->GetLastpos(); }
+void PositiveNode::CalcFollowpos() {
+  child_->CalcFollowpos();
+
+  for (auto& node : child_->GetLastpos()) {
+    node->followpos_.merge(child_->GetFirstpos());
+  }
+}
+
+bool OptionalNode::GetNullable() { return true; }
+LeafNodes OptionalNode::GetFirstpos() { return child_->GetFirstpos(); }
+LeafNodes OptionalNode::GetLastpos() { return child_->GetLastpos(); }
+void OptionalNode::CalcFollowpos() { child_->CalcFollowpos(); }
+
 /** 泛型输入单元 */
 struct Unit {
   std::variant<char, Regex> value_;
@@ -249,7 +346,7 @@ void Parse(std::vector<Unit>& input, size_t const start = 0UL,
       }
 
       break;
-    }else if (input[i] == '(') {
+    } else if (input[i] == '(') {
       input.erase(input.begin() + i);
       Parse(input, i, depth + 1);
       if (i + 1 >= input.size() || input[i + 1] != ')') {
@@ -334,6 +431,19 @@ Regex Compile(std::string const& expression) {
   }
 
   return input[0].GetNode();
+}
+
+Regex Union(Regex const& left, Regex const& right) {
+  auto const node = std::make_shared<UnionNode>();
+  node->left_ = left;
+  node->right_ = right;
+  return node;
+}
+
+std::shared_ptr<AcceptNode> Accept(Regex const& regex, int token_id) {
+  auto const node = std::make_shared<AcceptNode>(token_id);
+  for (auto it : regex->GetLastpos()) it->followpos_.insert(node);
+  return node;
 }
 
 }  // namespace toylang::regex
