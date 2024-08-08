@@ -13,15 +13,15 @@ export CMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake
 
 # 设置编译类型为 Debug
 function debug() {
-    export BUILD_Type=Debug
+    export BUILD_TYPE=Debug
     echo "Build type set to Debug"
 }
 
 # 设置编译类型为 Release
 function release() {
-    export BUILD_Type=Release
+    export BUILD_TYPE=Release
     echo "Build type set to Release"
 }
 
 debug
-export PROMPT_COMMAND='echo -ne "\033[1m$PROJECT_NAME\033[0m: \033[32m$BUILD_Type\033[0m\n";'$PROMPT_COMMAND
+export PROMPT_COMMAND='echo -ne "\033[1m$PROJECT_NAME\033[0m: \033[32m$BUILD_TYPE\033[0m\n";'$PROMPT_COMMAND
