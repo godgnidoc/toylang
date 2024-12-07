@@ -5,6 +5,8 @@
 #include <variant>
 #include <vector>
 
+#include "toylang/anim.h"
+
 // #include "toylang/hex.h"
 
 namespace toylang::regex {
@@ -83,13 +85,21 @@ bool AcceptNode::Match(char input) {
 }
 
 bool CharNode::GetNullable() { return false; }
-LeafNodes CharNode::GetFirstpos() { return {shared_from_this()}; }
-LeafNodes CharNode::GetLastpos() { return {shared_from_this()}; }
+LeafNodes CharNode::GetFirstpos() {
+  return {std::dynamic_pointer_cast<LeafNode>(shared_from_this())};
+}
+LeafNodes CharNode::GetLastpos() {
+  return {std::dynamic_pointer_cast<LeafNode>(shared_from_this())};
+}
 bool CharNode::Match(char ch) { return ch_ == ch; }
 
 bool RangeNode::GetNullable() { return false; }
-LeafNodes RangeNode::GetFirstpos() { return {shared_from_this()}; }
-LeafNodes RangeNode::GetLastpos() { return {shared_from_this()}; }
+LeafNodes RangeNode::GetFirstpos() {
+  return {std::dynamic_pointer_cast<LeafNode>(shared_from_this())};
+}
+LeafNodes RangeNode::GetLastpos() {
+  return {std::dynamic_pointer_cast<LeafNode>(shared_from_this())};
+}
 bool RangeNode::Match(char ch) {
   if (dir_ == kNegative)
     return !set_.count(ch);
@@ -430,19 +440,25 @@ Regex Compile(std::string const& expression) {
     throw std::runtime_error("invalid expression");
   }
 
-  return input[0].GetNode();
+  auto node = input[0].GetNode();
+  Anim::RegexCompile(expression, node);
+  return node;
 }
 
 Regex Union(Regex const& left, Regex const& right) {
   auto const node = std::make_shared<UnionNode>();
   node->left_ = left;
   node->right_ = right;
+
+  Anim::RegexUnion(node);
   return node;
 }
 
 std::shared_ptr<AcceptNode> Accept(Regex const& regex, int token_id) {
   auto const node = std::make_shared<AcceptNode>(token_id);
   for (auto it : regex->GetLastpos()) it->followpos_.insert(node);
+
+  Anim::RegexAccept(node, regex);
   return node;
 }
 

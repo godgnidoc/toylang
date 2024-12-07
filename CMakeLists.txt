@@ -20,11 +20,19 @@ include_directories(include)
 
 # 添加可执行程序目标
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  fmt::fmt-header-only 
+  spdlog::spdlog_header_only 
+  nlohmann_json::nlohmann_json)
 
 # 添加测试目标
 enable_testing()
 file(GLOB_RECURSE TEST_FILES test/*.cpp)
 add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${SOURCE_FILES})
 target_compile_definitions(${PROJECT_NAME}_test PRIVATE UNIT_TEST)
-target_link_libraries(${PROJECT_NAME}_test GTest::GTest GTest::Main)
+target_link_libraries(${PROJECT_NAME}_test 
+  GTest::GTest GTest::Main 
+  fmt::fmt-header-only 
+  spdlog::spdlog_header_only 
+  nlohmann_json::nlohmann_json)
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)

@@ -20,7 +20,7 @@ using LeafNodes = std::set<std::shared_ptr<LeafNode>,
                            std::owner_less<std::shared_ptr<LeafNode>>>;
 
 /** 正则表达式节点 */
-struct Node {
+struct Node : std::enable_shared_from_this<Node> {
   enum Type {
     /** 接受 */
     kAccept,
@@ -56,7 +56,7 @@ struct Node {
   virtual void CalcFollowpos() = 0;
 };
 
-struct LeafNode : public Node, std::enable_shared_from_this<LeafNode> {
+struct LeafNode : public Node {
   /**
    * 后继位置集合
    */

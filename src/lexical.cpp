@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "toylang/anim.h"
+
 namespace toylang {
 
 namespace {
@@ -105,16 +107,20 @@ Token Scanner::NextToken() {
   if (offset_ >= source_->content.size()) return token;
 
   auto state = lexicon_->TransferOfState(0, context_).value();
+  Anim::ScannerSetState(state);
   while (state != 0) {
     auto const ch = static_cast<unsigned char>(source_->content[offset_]);
     auto tr = lexicon_->TransferOfState(state, ch);
     if (tr) {
       state = *tr;
+      Anim::ScannerSetState(state);
     } else if (auto accept = lexicon_->AcceptOfState(state); accept) {
       token.id = *accept;
+      Anim::ScannerAcceptToken(token);
       break;
     } else {
       token.id = Token::kError;
+      Anim::ScannerAcceptToken(token);
       if (ch == 0) break;
 
       state = 0;
@@ -129,7 +135,9 @@ Token Scanner::NextToken() {
     if (ch == '\n') {
       line_++;
       column_ = 1UL;
+      Anim::ScannerNextLine();
     }
+    Anim::ScannerNextInput();
   }
 
   return token;
@@ -144,6 +152,7 @@ void Scanner::SetSource(std::shared_ptr<Source const> source) {
   line_ = 1;
   column_ = 1;
   offset_ = 0;
+  Anim::ScannerSetSource(source->content);
 }
 void Scanner::SetContext(int context) { context_ = context; }
 void Scanner::SetContext(std::string const& context) {
@@ -194,7 +203,9 @@ struct Lexicon::Builder::Building {
       }
     }
     impl_->tokens_.push_back(name);
-    return impl_->tokens_.size();
+    auto id = impl_->tokens_.size();
+    Anim::LexiconAddToken(id, name);
+    return id;
   }
 };
 
@@ -250,6 +261,7 @@ std::shared_ptr<Lexicon> Lexicon::Builder::Build() {
   {
     // 起始状态
     building_->impl_->states_.emplace_back();
+    Anim::LexiconAddState(0, {});
 
     // 计算全部位置的followpos
     regex_->CalcFollowpos();
@@ -273,6 +285,9 @@ std::shared_ptr<Lexicon> Lexicon::Builder::Build() {
 
         state_pos_map[stateid].insert(posit);
       }
+
+      Anim::LexiconAddState(stateid, state_pos_map[stateid]);
+      Anim::LexiconAddTransfer(0, stateid, ctxid);
     }
   }
 
@@ -293,6 +308,7 @@ std::shared_ptr<Lexicon> Lexicon::Builder::Build() {
         // 词法记号ID越小，优先级越高
         if (!state.accept || accept->token_id_ < state.accept) {
           state.accept = accept->token_id_;
+          Anim::LexiconSetAccept(state_id, accept->token_id_);
         }
       }
     }
@@ -327,11 +343,13 @@ std::shared_ptr<Lexicon> Lexicon::Builder::Build() {
         pending_states.push_back(next_state_id);
         building_->impl_->states_.emplace_back();
         state_pos_map.emplace(next_state_id, followpos);
+        Anim::LexiconAddState(next_state_id, followpos);
       }
 
       // 添加转移
       building_->impl_->states_.at(state_id).transfer.emplace(ch,
                                                               next_state_id);
+      Anim::LexiconAddTransfer(state_id, next_state_id, ch);
     }
   }
 
