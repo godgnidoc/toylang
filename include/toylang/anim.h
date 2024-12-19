@@ -11,7 +11,8 @@ namespace toylang {
 class Anim {
  public:
   static void RegexCompile(std::string const& pattern, Regex regex);
-  static void RegexAccept(Regex accept, Regex root);
+  static void RegexAccept(Regex accept,
+                          toylang::regex::LeafNodes const& afters);
   static void RegexUnion(Regex unode);
   static void LexiconAddToken(int id, std::string const& name);
   static void LexiconAddState(int id, regex::LeafNodes const& poses);
@@ -22,7 +23,7 @@ class Anim {
   static void ScannerNextInput();
   static void ScannerNextLine();
   static void ScannerAcceptToken(Token const& token);
-  static int main(int, char **);
+  static int main(int, char**);
 };
 
 }  // namespace toylang

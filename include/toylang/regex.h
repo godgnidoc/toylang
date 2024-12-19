@@ -115,6 +115,7 @@ struct RangeNode : public LeafNode {
 
   Direction dir_;
   std::set<char> set_;
+  std::string writing_;
 
   Type type() const override { return kRange; }
 

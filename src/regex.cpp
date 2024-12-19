@@ -201,11 +201,13 @@ void ScanRange(std::vector<Unit>& input, size_t const start) {
   if (input[start] != '[') {
     throw std::runtime_error("ScanRange: invalid start char");
   } else {
+    node->writing_ += input[start].GetChar();
     input.erase(input.begin() + start);
   }
 
   if (input[start] == '^') {
     node->dir_ = RangeNode::kNegative;
+    node->writing_ += input[start].GetChar();
     input.erase(input.begin() + start);
   } else {
     node->dir_ = RangeNode::kPositive;
@@ -280,6 +282,7 @@ void ScanRange(std::vector<Unit>& input, size_t const start) {
       } break;
     }
 
+    node->writing_ += input[start].GetChar();
     input.erase(input.begin() + start);
   }
 
@@ -456,9 +459,10 @@ Regex Union(Regex const& left, Regex const& right) {
 
 std::shared_ptr<AcceptNode> Accept(Regex const& regex, int token_id) {
   auto const node = std::make_shared<AcceptNode>(token_id);
-  for (auto it : regex->GetLastpos()) it->followpos_.insert(node);
+  auto afters = regex->GetLastpos();
+  for (auto it : afters) it->followpos_.insert(node);
 
-  Anim::RegexAccept(node, regex);
+  Anim::RegexAccept(node, afters);
   return node;
 }
 

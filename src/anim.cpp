@@ -41,54 +41,54 @@ nlohmann::json jsonify(regex::RangeNode::Direction dir) {
 nlohmann::json jsonify(Regex regex) {
   if (auto node = to<regex::AcceptNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "accept"},
+        {"id", hex(node)},
+        {"type", "accept"},
         {"tokenId", node->token_id_},
     };
   } else if (auto node = to<regex::CharNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "char"},
-        {"ch", node->ch_},
+        {"id", hex(node)},
+        {"type", "char"},
+        {"char", std::string(1, node->ch_)},
     };
   } else if (auto node = to<regex::RangeNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "range"},
+        {"id", hex(node)},
+        {"type", "range"},
         {"dir", jsonify(node->dir_)},
-        {"set", node->set_},
+        {"set", node->writing_},
     };
   } else if (auto node = to<regex::ConcatNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "concat"},
-        {"left", jsonify(node->left_)},
-        {"right", jsonify(node->right_)},
+        {"id", hex(node)},
+        {"type", "concat"},
+        {"lhs", jsonify(node->left_)},
+        {"rhs", jsonify(node->right_)},
     };
   } else if (auto node = to<regex::UnionNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "union"},
-        {"left", jsonify(node->left_)},
-        {"right", jsonify(node->right_)},
+        {"id", hex(node)},
+        {"type", "union"},
+        {"lhs", jsonify(node->left_)},
+        {"rhs", jsonify(node->right_)},
     };
   } else if (auto node = to<regex::KleeneNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "kleene"},
-        {"child", jsonify(node->child_)},
+        {"id", hex(node)},
+        {"type", "kleene"},
+        {"sub", jsonify(node->child_)},
     };
   } else if (auto node = to<regex::PositiveNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "positive"},
-        {"child", jsonify(node->child_)},
+        {"id", hex(node)},
+        {"type", "positive"},
+        {"sub", jsonify(node->child_)},
     };
   } else if (auto node = to<regex::OptionalNode>(regex); node) {
     return nlohmann::json{
-        {"@", hex(node)},
-        {"$", "optional"},
-        {"child", jsonify(node->child_)},
+        {"id", hex(node)},
+        {"type", "optional"},
+        {"sub", jsonify(node->child_)},
     };
   } else {
     throw std::runtime_error{"jsonify: unknown regex"};
@@ -117,11 +117,17 @@ void Anim::RegexCompile(std::string const& pattern, Regex regex) {
   });
 }
 
-void Anim::RegexAccept(Regex accept, Regex root) {
+void Anim::RegexAccept(Regex accept, toylang::regex::LeafNodes const& afters) {
+  auto jaccept = jsonify(accept);
+  jaccept["afters"] =
+      std::accumulate(afters.begin(), afters.end(), nlohmann::json::array(),
+                      [](nlohmann::json& acc, auto const& it) {
+                        acc.push_back(hex(it));
+                        return acc;
+                      });
   anim({
       {"$", "RegexAccept"},
-      {"accept", jsonify(accept)},
-      {"root", hex(root)},
+      {"accept", jaccept},
   });
 }
 
@@ -129,8 +135,8 @@ void Anim::RegexUnion(Regex unode) {
   anim({
       {"$", "RegexUnion"},
       {"union", hex(unode)},
-      {"left", hex(to<regex::UnionNode>(unode)->left_)},
-      {"right", hex(to<regex::UnionNode>(unode)->right_)},
+      {"lhs", hex(to<regex::UnionNode>(unode)->left_)},
+      {"rhs", hex(to<regex::UnionNode>(unode)->right_)},
   });
 }
 
