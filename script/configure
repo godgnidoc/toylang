@@ -1,9 +1,0 @@
-#!/bin/bash -e
-
-if [ -z "$PROJECT_PATH" ]; then
-    echo "PROJECT_PATH is not set. Please source setup.sh first."
-    exit 1
-fi
-
-mkdir -p $PROJECT_PATH/build
-env -C $PROJECT_PATH/build cmake ${PROJECT_PATH}

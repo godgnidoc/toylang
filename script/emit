@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PROJECT_PATH=$(realpath $(dirname $(dirname $0)))
+
 TOYLANG_ANIM=TRUE ${PROJECT_PATH}/build/toylang |& grep ANIM: | awk '
 BEGIN { print "[" }
 { sub(/^ANIM: /, ""); printf "%s%s", separator, $0; separator=",\n" }

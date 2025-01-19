@@ -19,6 +19,7 @@ Toylang 编程语言是为实践编译原理相关知识而开发的玩具编程
 - Compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
 - make: GNU Make 4.3
 - cmake: cmake version 3.28.1
+- vcpkg: >= 2024-09-30-ab8988503c7cffabfd440b243a383c0a352a023d
 
 # 快速开始
 

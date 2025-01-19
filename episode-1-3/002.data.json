@@ -1,0 +1,16 @@
+[
+{"$":"RegexCompile","pattern":"(ab)*abb","regex":{"id":"0x62ebccd28fd0","lhs":{"id":"0x62ebccd28f80","lhs":{"id":"0x62ebccd28f30","lhs":{"id":"0x62ebccd28ba0","sub":{"id":"0x62ebccd28ee0","lhs":{"char":"a","id":"0x62ebccd28be0","type":"char"},"rhs":{"char":"b","id":"0x62ebccd28d20","type":"char"},"type":"concat"},"type":"kleene"},"rhs":{"char":"a","id":"0x62ebccd28d90","type":"char"},"type":"concat"},"rhs":{"char":"b","id":"0x62ebccd28e00","type":"char"},"type":"concat"},"rhs":{"char":"b","id":"0x62ebccd28e70","type":"char"},"type":"concat"}},
+{"$":"LexiconAddToken","id":1,"name":"TK_AB"},
+{"$":"RegexAccept","accept":{"afters":["0x62ebccd28e70"],"id":"0x62ebccd24f80","tokenId":1,"type":"accept"}},
+{"$":"LexiconAddState","id":0,"poses":[]},
+{"$":"LexiconAddState","id":1,"poses":["0x62ebccd28be0","0x62ebccd28d90"]},
+{"$":"LexiconAddTransfer","from":0,"input":0,"to":1},
+{"$":"LexiconAddState","id":2,"poses":["0x62ebccd28d20","0x62ebccd28e00"]},
+{"$":"LexiconAddTransfer","from":1,"input":97,"to":2},
+{"$":"LexiconAddState","id":3,"poses":["0x62ebccd28be0","0x62ebccd28d90","0x62ebccd28e70"]},
+{"$":"LexiconAddTransfer","from":2,"input":98,"to":3},
+{"$":"LexiconAddTransfer","from":3,"input":97,"to":2},
+{"$":"LexiconAddState","id":4,"poses":["0x62ebccd24f80"]},
+{"$":"LexiconAddTransfer","from":3,"input":98,"to":4},
+{"$":"LexiconSetAccept","id":4,"token":1}
+]

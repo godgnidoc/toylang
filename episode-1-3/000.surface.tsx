@@ -1,4 +1,4 @@
-import { dark } from "src/theme";
+import { dark } from "/src/theme";
 import { makeSurfaceScene, SurfaceScene } from "/src/scenes/surface";
 import { waitUntil } from "@motion-canvas/core";
 

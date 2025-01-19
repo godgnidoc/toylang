@@ -1,0 +1,5 @@
+{
+  "tokens": {
+    "TK_AB": "(ab)*abb"
+  }
+}
